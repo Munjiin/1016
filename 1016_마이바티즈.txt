@@ -1,0 +1,182 @@
+프로젝트 명: day2
+1)레거시 프로젝트로 만듬
+2)패키지명 cotroller
+3)폼.xml
+
+11-1.8
+12-5.1.0
+36- test 넣기
+각종 디펜던시 추가
+
+4) mybatis maven, mybaits spring maven 두개 다 추가
+
+5)세팅 순서
+1.datasource
+2.mybatis
+3.mapper
+
+6)root-context 의 네임스페이스에 가면 마이바티스가 추가되어 있음.체크하기
+
+7)root-context에 히카리와 데이타소스 추가
+<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"></property>
+		<property name="jdbcUrl" value="jdbc:mysql://10.10.10.102:3306/heyyo?useSSL=false&amp;serverTimezone=Asia/Seoul&amp;allowPublicKeyRetrieval=true"></property>
+		<property name="username" value="jiin"></property>
+		<property name="password" value="12345678"></property>
+		</bean>
+		
+		<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+		
+		<constructor-arg ref="hikariConfig"></constructor-arg>
+		</bean>
+
+8)데이타소스테스트 그냥 복붙
+
+9)메이븐 업데이트
+10) 루트 컨텍스트에
+<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+</bean> 추가...
+
+11)추상클래스로 바꾸자
+데이타~~->엡스트랙트로
+package org.zerock.controller;
+
+import java.sql.SQLException;
+
+import javax.sql.DataSource;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import lombok.extern.log4j.Log4j;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("file:src/main/webapp/WEB-INF/spring/root-context.xml")
+//@Log4j
+public class AbstractTests {
+
+//   @Autowired
+//   private DataSource ds;
+//
+//   @Test
+//   public void test1() {
+//      log.info("test1.......................");
+//   }
+//   
+//   @Test
+//   public void testConnection() throws SQLException{
+//         log.info(ds.getConnection());
+//
+//   } 이름 바꾸고 지우기
+}
+
+12)sqlsessionfactory 확인
+sqlsessiontests.java 만들고
+
+package org.zerock.controller;
+
+import static org.junit.Assert.assertNotNull;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.Setter;
+import lombok.extern.log4j.Log4j;
+
+@Log4j
+public class SqlSessionTests extends AbstractTests {
+
+	@Setter(onMethod_=@Autowired)
+	private SqlSessionFactory factory;
+	
+	//test
+	@Test
+	public void test() {
+		log.info(factory);
+		assertNotNull(factory); //널이면 실패
+		
+	}
+}
+
+13)에러남...
+폼.xml 가서
+<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+넣기
+
+14).메퍼 만들기 시작!
+15) mapper 패키지 만들기
+16)타임메퍼 인터페이스 만들기
+
+public interface TimeMapper {
+
+	@Select("select now()")
+	public String getTime();
+}
+
+17)루트 컨텍스트
+	<mybatis-spring:scan base-package="org.zerock.mapper"/> 추가
+
+18) TimeMappertests.java 만들기
+
+package org.zerock.controller;
+
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.zerock.mapper.TimeMapper;
+
+import lombok.Setter;
+import lombok.extern.log4j.Log4j;
+
+@Log4j
+public class TimeMapperTests extends AbstractTests {
+	
+	@Setter(onMethod_=@Autowired)
+	private TimeMapper mapper;
+	
+	@Test
+	public void testTime(){
+		log.info(mapper);
+	}
+
+}
+
+19) xml로 쿼리 만들기!!
+20)타임메퍼에 
+public String getTime2(); 추가
+21) 소스/메인/리소스에 패키지랑 같은 폴더를 중첩해서 만듬
+22) 마지막 폴더에 timeMapper.xml 만들기( other가야함)
+
+23) 추가
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+24)<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!--  추가해야 컨트롤 스페이스 가능-->
+  
+  
+<mapper namespace="org.zerock.mapper.TimeMapper"> <!-- //인터페이스의 이름과 동일하게 -->
+	<select id="getTime2" resultType="string">
+	select now()
+	</select>
+</mapper>
+
+
+
+=========================================todo
+1.todo 도메인으로 변수 잡기
+2.mapper인터페이스로 함수만 정의
+3.폴더가 패키지와 같이 되어있는 곳에 xml로 쿼리문 작성
+4.테스트
