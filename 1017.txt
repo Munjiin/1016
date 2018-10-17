@@ -1,0 +1,462 @@
+서버 화면에 나타내기
+프로젝트명:day2
+
+1) homecontroller.java
+@GetMapping("/home2")
+	public void home2(String str,Model model) { //jsp로 보내는 건 model
+		logger.info("str..");
+		logger.info(str);
+		model.addAttribute("str",str);
+	}//jsp 만들기
+
+2) views 밑에 home2.jsp (other->web)
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="EUC-KR"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>parameter</h1>
+<h1>${str}</h1>
+
+</body>
+</html>
+
+======================================투두
+1) todocontroller
+
+package org.zerock.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.log4j.Log4j;
+
+@Controller //어노테이션
+@RequestMapping("/todo/*") //투두로 시작하는 유알엘은 모두 여기로 옴
+@Log4j
+public class TodoController {
+	//등록화면은 파라미터 필요없고 get 방식
+	//void 경우 리퀘스트의 경로가 jsp이름
+	//if else가 필요한 경우는 string 반환. 성공 실패를,,
+	@GetMapping("/register")
+	public void register() {
+		log.info("register");
+	}
+
+}
+
+
+2)http://localhost:8080/todo/register
+실행시 jsp 찾는 에러
+
+3)views 밑에 todo 폴더
+
+(4)유티에프 팔로 기본 설정)
+window->preferences->geneal->other -> utf-8 / web->UTF-8
+
+5) webapp->resources 에 이미지 넣기
+
+6)'/'로 바꾸는 방법
+1.톰켓->모듈에서 /
+2.프로젝트 프로펄티->웹 프로젝트 셋팅 ->/
+
+7)register.jsp
+<img alt="" src="/resources/sample.jpg"> <!-- alt: 이미지 제대로 안나왔을때 나오는 것 -->
+<form method="post"> <!-- 등록은 포스트. 액션은 생략하면 유알엘 경로가 디폴트. -->
+	<button>Save</button>
+</form>
+
+8) 버튼 누르면 포스트 멥핑이 없어서 에러
+
+9)투두컨트롤러
+//버튼 누르면 포스트 동작 위해
+	@PostMapping("/register")
+	public String registerPost(Todo todo) {
+		log.info(todo);
+		
+		return "todo/success"; //여기로 가게 하는 것.
+	}
+
+10) 리턴 제이에스피가 없음 에러
+
+11)register.jsp
+<img alt="" src="/resources/sample.jpg"> <!-- alt: 이미지 제대로 안나왔을때 나오는 것 -->
+<form method="post"> <!-- 등록은 포스트. 액션은 생략하면 유알엘 경로가 디폴트. -->
+	<input type='text' name='title' value='한글테스트'> <!-- 한글깨짐 -->
+	<button>Save</button>
+</form>
+
+12)한글 테스트에서 한글이 깨지므로
+'스프링 한글 처리 필터'
+<filter>
+
+		<filter-name>encodingFilter</filter-name>
+
+		<filter-class>
+
+			org.springframework.web.filter.CharacterEncodingFilter     
+
+		</filter-class>
+
+		<init-param>
+
+			<param-name>encoding</param-name>   
+
+			<param-value>UTF-8</param-value>
+
+		</init-param>
+
+		<init-param>
+
+			<param-name>forceEncoding</param-name>  
+
+			<param-value>true</param-value>
+
+		</init-param>
+
+	</filter>    
+
+
+
+	<filter-mapping>
+
+		<filter-name>encodingFilter</filter-name>
+
+		<url-pattern>/*</url-pattern>                 
+
+	</filter-mapping>
+
+
+
+출처: http://yooooooo7se.tistory.com/83 [Learning Machine]
+
+이걸 web.xml에 추가
+
+13)todo폴더에 success.jsp 추가
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<!-- <h1>${result}</h1>  --><!-- todo로 쓰면: 모델에 담지 않아도 사용자가 정의한 객체 타입은 자동으로 전달 됨. 앞글자만 소문자로 바뀜. -->
+<h1>${result}</h1> <!-- todo로 쓰면: 모델에 담지 않아도 사용자가 정의한 객체 타입은 자동으로 전달 됨. 앞글자만 소문자로 바뀜. -->
+
+</body>
+</html>
+
+14) todocontroller.java
+//버튼 누르면 포스트 동작 위해
+	@PostMapping("/register")
+	public String registerPost(@ModelAttribute("result")Todo todo) { //model을 하므로써 jsp에서 result로 이름 사용 가능해짐.
+		log.info(todo);
+		
+		return "todo/success"; //여기로 가게 하는 것.
+	}
+
+15)배열 사용 . 투두컨트롤러
+	//배열
+	@GetMapping("/exArray")
+	public String exArray(String[] ids) {
+		log.info(Arrays.toString(ids));
+		return "todo/success";
+	}
+16)http://localhost:8080/todo/exArray?ids=aaa&ids=bbbb 실행.
+
+
+17)화면 없이 실행 위해 OrderVO
+
+package org.zerock.domain;
+
+import lombok.Data;
+
+@Data
+public class OrderVO {
+	
+	private String pid;
+	private int qty;
+
+}
+
+
+18) 투두 컨트롤러
+
+//ordervo
+	@GetMapping("/order")
+	public String order(OrderList list) { //List<OrderVO> 불가하므로 꼼수..
+		log.info(list);
+		return "todo/success";
+	}
+
+19)OrderList
+package org.zerock.domain;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Data;
+
+//투두 리스트에서 List<OrderVO> 불가해서 꼼수
+@Data
+public class OrderList {
+	
+	private List<OrderVO> list;
+
+	public OrderList() {
+		list = new ArrayList<>();
+	}
+	
+	
+
+}
+
+19) 실행
+/todo/order?list[0].pid=A&list[0].qty=3 ->[를 특수문자 취급
+변환: http://localhost:8080/todo/order?list%5B0%5D.pid=D&list%5B0%5D.qty=3&list%5B1%5D.pid=A&list%5B1%5D.qty=10
+
+20)날짜 데이터 수집!!
+레지스터.jsp
+<input type='date'name='regdate'> 추가
+
+21)todo.java
+
+@DateTimeFormat(pattern="yyyy-MM-dd") //추가
+	private Date regdate;
+
+
+22) 모델
+투두컨트로러.
+
+	//ordervo
+	@GetMapping("/order")
+	public String order(OrderList list,Model model) { //List<OrderVO> 불가하므로 꼼수.. // 토탈을 전달하고 싶으나 리스트엔 없을 경우 모델.
+		log.info(list);
+		model.addAttribute("total", 3000); //토탈은 모델
+		
+		return "todo/success";
+	}
+	
+
+23) success.jsp
+<body>
+<!-- <h1>${result}</h1>  --><!-- todo로 쓰면: 모델에 담지 않아도 사용자가 정의한 객체 타입은 자동으로 전달 됨. 앞글자만 소문자로 바뀜. -->
+<h1>${result}</h1> <!-- todo로 쓰면: 모델에 담지 않아도 사용자가 정의한 객체 타입은 자동으로 전달 됨. 앞글자만 소문자로 바뀜. -->
+
+<h2>${total}</h2>
+
+24) http://localhost:8080/todo/order
+
+25) 전송->success-> list 하기 위해
+투두 컨트롤러
+@GetMapping("/list")
+	public void list() {
+		log.info("list..");
+	}
+
+26) list.jsp 생성
+
+27)//버튼 누르면 포스트 동작 위해
+	@PostMapping("/register")
+	public String registerPost(/*@RequestParam("sample")String name, @ModelAttribute("result")*/Todo todo,RedirectAttributes rttr) { //model을 하므로써 jsp에서 result로 이름 사용 가능해짐.
+		log.info(todo);
+		
+		//return "todo/success"; //여기로 가게 하는 것. 
+		
+		//리스트 추가
+		//새로고침시 도배. -> redirectattribute로 바로 리스트로 가게.
+		rttr.addFlashAttribute("result","SUCCESS"); //게시물 등록 성공?실패? . 플래쉬는 한번만 사용가능. 세션에 들어감.
+		return "redirect:/todo/list";
+	}
+	
+28) rttr.addFlashAttribute("result","SUCCESS"); //게시물 등록 성공?실패?
+
+29)list.jsp
+
+<script>
+
+var result = '${result}'; //한번 전송 되면 result가 success로 바뀜. 새로 고침해도 공백으로 되어서 도배 불가.
+
+if(result==='SUCCESS'){
+	alert("등록 성공");
+}
+</script>
+
+<!-- 이렇게 하면 한번만 등록 . 도배 막기 위해 리스트로 이동. 성공해서 이동하는지 아닌지 알고싶음. 경고창을 한번만 띄우고 안띄우게 하기 -->
+
+-------------------------------------------
+30) 추가
+<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.9.5</version>
+</dependency>
+
+31)투두서비스
+package org.zerock.service;
+
+import java.util.List;
+
+import org.zerock.domain.Todo;
+
+public interface TodoService {
+	
+	public List<Todo> getList();
+
+}
+
+32) 프로젝트 컴파일 1.8로 바꾸기
+
+32)투두 서비스임플
+
+33)에스가 안붙으니 루트 가서 컨텍스트 체크 하고
+
+<context:component-scan base-package="org.zerock.service"></context:component-scan> <!--  //s자가 붙게 되고 주입이 가능해짐 -->
+
+34)투두서비스
+@Override
+	public List<Todo> getList() {
+		ArrayList<Todo> list = new ArrayList<>();
+		
+		IntStream.range(1,100).forEach(i->{
+			Todo todo = new Todo();
+			todo.setTno(i);
+			todo.setTitle("TITLE "+i);
+			
+			list.add(todo);
+		}); //가짜 todo 만들기
+		
+		return list;
+	}
+35) 투두컨트롤러
+@AllArgsConstructor //자동 주입
+
+private TodoService service; //자동주입이용
+
+36).	private TodoService service; //자동주입이용
+	
+	@GetMapping("/list2")
+	@ResponseBody //jsp가 필요하지 않음. 내부적으로 결과를 반환함.
+	public List<Todo> list2(){
+		return service.getList();
+	}
+
+36) 투두 컨트롤러에 //내가 처리를 했을 때 잘됐는지 상태까지 보내도록 하기 위해 바꾸기 .결과는 동일
+@GetMapping("/list2")
+	@ResponseBody //jsp가 필요하지 않음. 내부적으로 결과를 반환함.
+	public ResponseEntity<List<Todo>> list2(){
+		//return service.getList(); //제이슨 데이타 출력
+		
+		return new ResponseEntity<List<Todo>>(service.getList(), HttpStatus.OK); //responseEntity로 바꾼 후
+		//내가 처리를 했을 때 잘됐는지 상태까지 보내도록 하는 것.
+	}
+
+=======================================페이징 방법
+select * from tbl_todo
+where tno>0
+order by tno desc
+limit 0,10;
+
+select * from tbl_todo
+where tno>0
+order by tno desc
+limit 10,10;
+
+
+=======================================드롭박스(?)
+1) 'jquery cdn' ㅡ>'minified'를 리스트.jsp에 추가
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+
+
+2)storevo
+package org.zerock.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class StoreVO {
+	
+	private Integer sno;
+	private String sname;
+
+}
+
+
+3)todoserviceimpl
+	//음식점 목록을 달라고 하는 것
+	private Map<String, List<StoreVO>> storeMap;
+	
+	public TodoServiceImpl() {
+		storeMap = new HashMap<>();
+		
+		List<StoreVO> korList = new ArrayList<>();
+		korList.add(new StoreVO(1,"청진식당"));
+		korList.add(new StoreVO(2,"뚝배기집"));
+		korList.add(new StoreVO(3,"마마된장"));
+		
+		storeMap.put("kor", korList);
+		
+		List<StoreVO> jpList = new ArrayList<>();
+		jpList.add(new StoreVO(11,"이춘복참치"));
+		jpList.add(new StoreVO(22,"가쓰야"));
+		jpList.add(new StoreVO(33,"갓덴스시"));
+		
+		storeMap.put("jp", jpList);
+	}
+
+4).todoservice
+public List<StoreVO> getStores(String cat);
+
+5)todocontroller
+private TodoService service; //자동주입이용
+	
+	@GetMapping("/stores")
+	public @ResponseBody List<StoreVO> getStores(String cat){
+		
+		return service.getStores(cat);
+		
+	}
+6) list.jsp
+
+<script>
+
+  $("#cat").change(function() {
+	
+	  var val = $("#cat option:selected").val();
+	  console.log(val);
+	  
+	  $.getJSON("/todo/stores", {cat:val},function(data){
+		  
+		  console.log(data);
+		  
+		  var str ="";
+		  
+		  $(data).each(function(idx, obj){
+			  str += "<option>"+obj.sname+"</option>";
+		  });
+		  
+		  $("#sub").html(str);
+		  
+		  
+	  } );
+	  
+  });
+
+</script>
+
+
