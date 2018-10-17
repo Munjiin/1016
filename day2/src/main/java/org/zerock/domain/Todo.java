@@ -2,13 +2,17 @@ package org.zerock.domain;
 
 import java.util.Date;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import lombok.Data;
 
-@Data //get set ¸¸µé¾îÁü
+@Data //get set ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 public class Todo {
 	
 	private Integer tno;
 	private String title;
+	
+	@DateTimeFormat(pattern="yyyy-MM-dd") //ì´ê±¸ ì¶”ê°€ 
 	private Date regdate;
 
 }
